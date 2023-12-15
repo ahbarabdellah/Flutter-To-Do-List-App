@@ -19,13 +19,13 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: MyHomePage(),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  MyHomePage({
+  const MyHomePage({
     super.key,
   });
 
@@ -35,6 +35,55 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   final todoslist = ToDo.toDoList();
+
+  final TextEditingController addtodocontroller = TextEditingController();
+
+  void marktodo(ToDo todo) {
+    setState(() {
+      todo.isDone = !todo.isDone;
+    });
+  }
+
+  void deletetodo(ToDo todo) {
+    setState(() {
+      todoslist.remove(todo);
+    });
+  }
+
+  void addTodo2todolist() {
+    if (addtodocontroller.text.trim().isNotEmpty) {
+      int id = 0;
+      if (todoslist.isNotEmpty) {
+        id = todoslist.last.ids! + 1;
+      } else {
+        id = 1;
+      }
+
+      setState(() {
+        todoslist.add(ToDo(ids: id, task: addtodocontroller.text.trim()));
+        addtodocontroller.clear();
+      });
+    } else {
+      var snackBar = const SnackBar(
+        backgroundColor: Colors.red,
+        content: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.cancel,
+              color: Colors.white,
+            ),
+            SizedBox(width: 10),
+            Text(
+              'Please enter a task ! ',
+              style: TextStyle(color: Colors.white),
+            )
+          ],
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,70 +112,97 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    for (ToDo todo in todoslist) ToDoItem(todo: todo),
+                    for (ToDo todo in todoslist.reversed)
+                      ToDoItem(
+                        todo: todo,
+                        marktodo: marktodo,
+                        deleteTodo: deletetodo,
+                      ),
                   ],
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Container(
-                      decoration: BoxDecoration(
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color.fromARGB(255, 0, 0, 0)
-                                  .withOpacity(
-                                      0.3), // Shadow color with opacity
-                              spreadRadius: 3, // Spread radius
-                              blurRadius: 3, // Blur radius
-                              offset:
-                                  Offset(0, 0), // Changes position of shadow
-                            ),
-                          ],
-                          border: Border.all(color: Colors.black),
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.white),
-                      child: const TextField(
-                        decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.add),
-                            hintText: "Add a Task",
-                            border: InputBorder.none),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                          decoration: BoxDecoration(
-                              boxShadow: [
-                                BoxShadow(
-                                  color: const Color.fromARGB(255, 68, 138, 255)
-                                      .withOpacity(
-                                          0.3), // Shadow color with opacity
-                                  spreadRadius: 3, // Spread radius
-                                  blurRadius: 3, // Blur radius
-                                  offset: const Offset(
-                                      0, 0), // Changes position of shadow
-                                ),
-                              ],
-                              color: const Color.fromARGB(255, 68, 138, 255),
-                              borderRadius: BorderRadius.circular(5)),
-                          width: 50,
-                          height: 50,
-                          child: const Icon(Icons.add))),
-                ],
-              ),
-            )
+            AddToDo(
+                addtodocontroller: addtodocontroller,
+                todos: todoslist,
+                addTodo2todolist: addTodo2todolist)
           ],
         ),
+      ),
+    );
+  }
+}
+
+class AddToDo extends StatefulWidget {
+  final TextEditingController addtodocontroller;
+  final List<ToDo> todos;
+  final addTodo2todolist;
+  const AddToDo(
+      {super.key,
+      required this.addtodocontroller,
+      required this.todos,
+      required this.addTodo2todolist});
+
+  @override
+  State<AddToDo> createState() => _AddToDoState();
+}
+
+class _AddToDoState extends State<AddToDo> {
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color.fromARGB(255, 0, 0, 0)
+                          .withOpacity(0.3), // Shadow color with opacity
+                      spreadRadius: 3, // Spread radius
+                      blurRadius: 3, // Blur radius
+                      offset: const Offset(0, 0), // Changes position of shadow
+                    ),
+                  ],
+                  border: Border.all(color: Colors.black),
+                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white),
+              child: TextField(
+                controller: widget.addtodocontroller,
+                decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.add),
+                    hintText: "Add a Task",
+                    border: InputBorder.none),
+              ),
+            ),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          GestureDetector(
+              onTap: widget.addTodo2todolist,
+              child: Container(
+                  decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color.fromARGB(255, 68, 138, 255)
+                              .withOpacity(0.3), // Shadow color with opacity
+                          spreadRadius: 3, // Spread radius
+                          blurRadius: 3, // Blur radius
+                          offset:
+                              const Offset(0, 0), // Changes position of shadow
+                        ),
+                      ],
+                      color: const Color.fromARGB(255, 68, 138, 255),
+                      borderRadius: BorderRadius.circular(5)),
+                  width: 50,
+                  height: 50,
+                  child: const Icon(Icons.add))),
+        ],
       ),
     );
   }
@@ -143,7 +219,7 @@ class SearchBox extends StatelessWidget {
       decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Color.fromARGB(255, 0, 0, 0)
+              color: const Color.fromARGB(255, 0, 0, 0)
                   .withOpacity(0.3), // Shadow color with opacity
               spreadRadius: 3, // Spread radius
               blurRadius: 3, // Blur radius
@@ -170,14 +246,22 @@ AppBar buildAppBar() {
     title: Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Icon(Icons.menu),
-        const Text('To-Do'),
-        SizedBox(
-          width: 40,
-          height: 40,
+        const Icon(
+          Icons.menu,
+          size: 30,
+        ),
+        const Text(
+          'To-Do',
+          style: TextStyle(fontSize: 30),
+        ),
+        Container(
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
+          width: 50,
+          height: 50,
           child: ClipRRect(
+            borderRadius: BorderRadius.circular(25),
             child: Image.network(
-                "https://pfpmaker.com/_nuxt/img/martin.f86f81e.webp"),
+                "https://avatars.githubusercontent.com/u/71067263?v=4"),
           ),
         )
       ],

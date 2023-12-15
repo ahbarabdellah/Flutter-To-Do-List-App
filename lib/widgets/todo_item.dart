@@ -4,7 +4,13 @@ import 'package:todo/model/to_dos.dart';
 
 class ToDoItem extends StatelessWidget {
   final ToDo todo;
-  const ToDoItem({super.key, required this.todo});
+  final Function marktodo;
+  final Function deleteTodo;
+  const ToDoItem(
+      {super.key,
+      required this.todo,
+      required this.marktodo,
+      required this.deleteTodo});
 
   @override
   Widget build(BuildContext context) {
@@ -13,11 +19,11 @@ class ToDoItem extends StatelessWidget {
       child: ListTile(
         tileColor: Colors.white,
         onTap: () {
-          print("tile");
+          marktodo(todo);
         },
         leading: Icon(
           todo.isDone ? Icons.check_box : Icons.check_box_outline_blank,
-          color: AppColors.eerieBlack,
+          color: Colors.blueAccent,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         title: Text(
@@ -27,7 +33,7 @@ class ToDoItem extends StatelessWidget {
         ),
         trailing: GestureDetector(
           onTap: () {
-            print("Icon");
+            deleteTodo(todo);
           },
           child: Container(
             height: 40,
