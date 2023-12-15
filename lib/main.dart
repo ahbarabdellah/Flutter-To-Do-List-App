@@ -34,9 +34,33 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final todoslist = ToDo.toDoList();
+  final List<ToDo> todoslist = ToDo.toDoList();
 
   final TextEditingController addtodocontroller = TextEditingController();
+  final TextEditingController searchKeyword = TextEditingController();
+
+  List<ToDo> _foundToDo = [];
+
+  @override
+  void initState() {
+    _foundToDo = todoslist;
+    super.initState();
+  }
+
+  void _runFilter(String searchKeyword) {
+    List<ToDo> results = [];
+    if (searchKeyword.isEmpty) {
+      results = todoslist;
+    } else {
+      results = todoslist
+          .where((element) =>
+              element.task.toLowerCase().contains(searchKeyword.toLowerCase()))
+          .toList();
+    }
+    setState(() {
+      _foundToDo = results;
+    });
+  }
 
   void marktodo(ToDo todo) {
     setState(() {
@@ -94,7 +118,7 @@ class _MyHomePageState extends State<MyHomePage> {
         padding: const EdgeInsets.all(25.0),
         child: Column(
           children: [
-            const SearchBox(),
+            SearchBox(searchKeyword: searchKeyword, onChanged: _runFilter),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -112,7 +136,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    for (ToDo todo in todoslist.reversed)
+                    for (ToDo todo in _foundToDo.reversed)
                       ToDoItem(
                         todo: todo,
                         marktodo: marktodo,
@@ -209,9 +233,10 @@ class _AddToDoState extends State<AddToDo> {
 }
 
 class SearchBox extends StatelessWidget {
-  const SearchBox({
-    super.key,
-  });
+  final TextEditingController searchKeyword;
+  final void Function(String)? onChanged;
+  const SearchBox(
+      {super.key, required this.searchKeyword, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -229,8 +254,10 @@ class SearchBox extends StatelessWidget {
           border: Border.all(color: Colors.black),
           borderRadius: BorderRadius.circular(20),
           color: Colors.white),
-      child: const TextField(
-        decoration: InputDecoration(
+      child: TextField(
+        onChanged: onChanged,
+        controller: searchKeyword,
+        decoration: const InputDecoration(
             prefixIcon: Icon(Icons.search),
             hintText: "Search",
             border: InputBorder.none),
