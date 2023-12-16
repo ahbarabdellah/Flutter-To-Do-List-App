@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:todo/colors/AppColors.dart';
-import 'package:todo/model/to_dos.dart';
-import 'package:todo/widgets/todo_item.dart';
+import 'package:todoapp/colors/app_colors.dart';
+import 'package:todoapp/widgets/add_todo.dart';
+import 'package:todoapp/widgets/build_app_bar.dart';
+import 'package:todoapp/widgets/search_box.dart';
+import 'package:todoapp/model/todo.dart';
+import 'package:todoapp/widgets/todo_item.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+  await Hive.openBox('todoBox');
+
   runApp(const MyApp());
 }
 
@@ -14,10 +21,9 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
+        colorScheme:
+            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 88, 107, 139)),
       ),
       home: const MyHomePage(),
     );
@@ -34,65 +40,76 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<ToDo> todoslist = ToDo.toDoList();
+  var db = MyData();
+  List todoslist = [];
 
   final TextEditingController addtodocontroller = TextEditingController();
   final TextEditingController searchKeyword = TextEditingController();
 
-  List<ToDo> _foundToDo = [];
+  var _foundToDo = [];
 
   @override
   void initState() {
+    List todoslist = db.loadData();
     _foundToDo = todoslist;
     super.initState();
   }
 
+  @override
+  void dispose() {
+    addtodocontroller.dispose();
+    searchKeyword.dispose();
+    super.dispose();
+  }
+
   void _runFilter(String searchKeyword) {
-    List<ToDo> results = [];
-    if (searchKeyword.isEmpty) {
-      results = todoslist;
-    } else {
-      results = todoslist
-          .where((element) =>
-              element.task.toLowerCase().contains(searchKeyword.toLowerCase()))
-          .toList();
-    }
     setState(() {
-      _foundToDo = results;
+      if (searchKeyword.isEmpty) {
+        _foundToDo = todoslist;
+      } else {
+        _foundToDo = todoslist
+            .where((element) =>
+                element[1].toLowerCase().contains(searchKeyword.toLowerCase()))
+            .toList();
+      }
     });
   }
 
-  void marktodo(ToDo todo) {
+  void marktodo(List todo) {
     setState(() {
-      todo.isDone = !todo.isDone;
+      todo[2] = !todo[2];
     });
+    db.updateData(todoslist);
   }
 
-  void deletetodo(ToDo todo) {
+  void deletetodo(todo) {
     setState(() {
       todoslist.remove(todo);
+      _foundToDo.remove(todo);
     });
+    db.updateData(todoslist);
   }
 
   void addTodo2todolist() {
     if (addtodocontroller.text.trim().isNotEmpty) {
       int id = 0;
       if (todoslist.isNotEmpty) {
-        id = todoslist.last.ids! + 1;
+        id = todoslist.last[0] + 1;
       } else {
         id = 1;
       }
 
       setState(() {
-        todoslist.add(ToDo(ids: id, task: addtodocontroller.text.trim()));
+        todoslist.add([id, addtodocontroller.text.trim(), false]);
         addtodocontroller.clear();
       });
+      db.updateData(todoslist);
     } else {
-      var snackBar = const SnackBar(
+      var snackBar = SnackBar(
         backgroundColor: Colors.red,
         content: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [
+          children: const [
             Icon(
               Icons.cancel,
               color: Colors.white,
@@ -136,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                       ),
                     ),
-                    for (ToDo todo in _foundToDo.reversed)
+                    for (List todo in _foundToDo.reversed)
                       ToDoItem(
                         todo: todo,
                         marktodo: marktodo,
@@ -155,143 +172,4 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
-}
-
-class AddToDo extends StatefulWidget {
-  final TextEditingController addtodocontroller;
-  final List<ToDo> todos;
-  final addTodo2todolist;
-  const AddToDo(
-      {super.key,
-      required this.addtodocontroller,
-      required this.todos,
-      required this.addTodo2todolist});
-
-  @override
-  State<AddToDo> createState() => _AddToDoState();
-}
-
-class _AddToDoState extends State<AddToDo> {
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color.fromARGB(255, 0, 0, 0)
-                          .withOpacity(0.3), // Shadow color with opacity
-                      spreadRadius: 3, // Spread radius
-                      blurRadius: 3, // Blur radius
-                      offset: const Offset(0, 0), // Changes position of shadow
-                    ),
-                  ],
-                  border: Border.all(color: Colors.black),
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.white),
-              child: TextField(
-                controller: widget.addtodocontroller,
-                decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.add),
-                    hintText: "Add a Task",
-                    border: InputBorder.none),
-              ),
-            ),
-          ),
-          const SizedBox(
-            width: 10,
-          ),
-          GestureDetector(
-              onTap: widget.addTodo2todolist,
-              child: Container(
-                  decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color.fromARGB(255, 68, 138, 255)
-                              .withOpacity(0.3), // Shadow color with opacity
-                          spreadRadius: 3, // Spread radius
-                          blurRadius: 3, // Blur radius
-                          offset:
-                              const Offset(0, 0), // Changes position of shadow
-                        ),
-                      ],
-                      color: const Color.fromARGB(255, 68, 138, 255),
-                      borderRadius: BorderRadius.circular(5)),
-                  width: 50,
-                  height: 50,
-                  child: const Icon(Icons.add))),
-        ],
-      ),
-    );
-  }
-}
-
-class SearchBox extends StatelessWidget {
-  final TextEditingController searchKeyword;
-  final void Function(String)? onChanged;
-  const SearchBox(
-      {super.key, required this.searchKeyword, required this.onChanged});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: const Color.fromARGB(255, 0, 0, 0)
-                  .withOpacity(0.3), // Shadow color with opacity
-              spreadRadius: 3, // Spread radius
-              blurRadius: 3, // Blur radius
-              offset: const Offset(0, 0), // Changes position of shadow
-            ),
-          ],
-          border: Border.all(color: Colors.black),
-          borderRadius: BorderRadius.circular(20),
-          color: Colors.white),
-      child: TextField(
-        onChanged: onChanged,
-        controller: searchKeyword,
-        decoration: const InputDecoration(
-            prefixIcon: Icon(Icons.search),
-            hintText: "Search",
-            border: InputBorder.none),
-      ),
-    );
-  }
-}
-
-AppBar buildAppBar() {
-  return (AppBar(
-    backgroundColor: AppColors.floralWhite,
-    elevation: 0,
-    title: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Icon(
-          Icons.menu,
-          size: 30,
-        ),
-        const Text(
-          'To-Do',
-          style: TextStyle(fontSize: 30),
-        ),
-        Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
-          width: 50,
-          height: 50,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(25),
-            child: Image.network(
-                "https://avatars.githubusercontent.com/u/71067263?v=4"),
-          ),
-        )
-      ],
-    ),
-  ));
 }

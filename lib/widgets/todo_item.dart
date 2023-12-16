@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:todo/colors/AppColors.dart';
-import 'package:todo/model/to_dos.dart';
+import 'package:todoapp/colors/app_colors.dart';
 
 class ToDoItem extends StatelessWidget {
-  final ToDo todo;
+  final List todo;
   final Function marktodo;
   final Function deleteTodo;
   const ToDoItem(
@@ -22,14 +21,14 @@ class ToDoItem extends StatelessWidget {
           marktodo(todo);
         },
         leading: Icon(
-          todo.isDone ? Icons.check_box : Icons.check_box_outline_blank,
+          todo[2] ? Icons.check_box : Icons.check_box_outline_blank,
           color: Colors.blueAccent,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         title: Text(
-          todo.task,
+          todo[1],
           style: TextStyle(
-              decoration: todo.isDone ? TextDecoration.lineThrough : null),
+              decoration: todo[2] ? TextDecoration.lineThrough : null),
         ),
         trailing: GestureDetector(
           onTap: () {
