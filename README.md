@@ -10,7 +10,8 @@ This is a simple cross-platform To-Do List application built with Flutter. It is
 - **Search for Tasks**: The app includes a search feature to easily find specific tasks.
 - **Offline Support**: The app works completely offline, storing all the tasks locally on the device.
 
-![Screenshot from 2023-12-16 02-14-38](https://github.com/ahbarabdellah/to-do-app/assets/71067263/2d23461d-a496-4cfe-944a-a01d5571cb09)
+[Screencast from 12-16-2023 08:45:40 PM.webm](https://github.com/ahbarabdellah/Flutter-To-Do-List-App/assets/71067263/c3fd91da-300f-4de0-aa69-eb8cdc204069)
+
 
 ## Getting Started
 To run this app on your local machine, follow these steps:
