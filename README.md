@@ -7,6 +7,7 @@ This is a simple cross-platform To-Do List application built with Flutter. It is
 - **Add Tasks**: Create new tasks with a simple input form.
 - **Delete Tasks**: Remove tasks that are no longer needed.
 - **Mark as Done**: Check off tasks that have been completed.
+- **Search for Tasks**: The app includes a search feature to easily find specific tasks.
 - **Offline Support**: The app works completely offline, storing all the tasks locally on the device.
 
 ![Screenshot from 2023-12-16 02-14-38](https://github.com/ahbarabdellah/to-do-app/assets/71067263/2d23461d-a496-4cfe-944a-a01d5571cb09)
